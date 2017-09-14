@@ -1,0 +1,283 @@
+import javafx.animation.AnimationTimer;
+import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+
+public class Juego extends AnimationTimer
+{
+	private Coin[] Coin;
+	private AnchorPane Circo;
+	private Jugador Charlie;
+	private Label marcador;
+	private int i =0;
+	private int marc = 0;
+	
+	public Juego (Coin[] Coin, AnchorPane Circo, Jugador Charlie, Label marcador)
+	{
+		this.Coin = Coin;
+		this.Circo = Circo;
+		this.Charlie = Charlie;
+		this.marcador = marcador;
+	}
+
+	@Override
+	public void handle(long arg0)
+	{
+		agregarPelotas();
+		verificarRecogerPelota();
+	}
+	
+	public void agregarPelotas(){
+		if(!Coin[i].moverAbajo() && i<Coin.length)
+		{
+			Circo.getChildren().remove(Coin[i]);
+			i++;
+			if(i<Coin.length){
+				Circo.getChildren().add(Coin[i]);
+			}
+		} 
+		if(i>=Coin.length){
+			verificarVictoria();
+			this.stop();
+		}
+	}
+	
+	public void verificarRecogerPelota(){
+		if(i<Coin.length){
+			if(Coin[i].getCenterY() == Charlie.getCenterY())
+			{
+				if(Coin[i].getCenterX() < Charlie.getCenterX()+40 && Coin[i].getCenterX() > Charlie.getCenterX()-40)
+				{
+					marc++;
+					marcador.setText(String.valueOf(marc));
+				}
+			}
+		}
+	}
+	
+	public void verificarVictoria(){
+		if(marc > 20){
+			mostrarImagenGanar();
+		} 
+		if(marc < 20) {
+			mostrarImagenPerder();
+		}
+	}
+
+	private void mostrarImagenGanar() {
+		Image ganaste=new Image("Winner.jpg");
+		ImageView fndo= new ImageView();
+	    fndo.setImage(ganaste);
+	    fndo.setFitWidth(1390);
+	    fndo.setFitHeight(900);
+	}
+	private void mostrarImagenPerder() {
+		Image perdiste=new Image("LoseImage.png");
+		ImageView fndo1= new ImageView();
+	    fndo1.setImage(perdiste);
+	    fndo1.setFitWidth(1390);
+	    fndo1.setFitHeight(900);
+	}
+	
+}
+
+import javafx.application.Application;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
+import javafx.fxml.FXMLLoader;
+
+public class Main extends Application {
+
+	@Override
+	public void start(Stage primaryStage) {
+		try {
+			AnchorPane root = (AnchorPane)FXMLLoader.load(getClass().getResource("Vista.fxml"));
+			Scene scene = new Scene(root);
+			scene.getStylesheets().add(getClass().getResource("Estilos.css").toExternalForm());
+			primaryStage.setResizable(false);
+			primaryStage.setScene(scene);
+			primaryStage.show();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) {
+		launch(args);
+	}
+}
+
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+public class Coin extends ImageView {
+	private double sentido;
+	private double centerY;
+	private double centerX;
+	
+	public Coin(double x, double y, String imageName, int sentido)
+	{
+		this.setImage(new Image(imageName));
+		this.setFitWidth(35);
+		this.setFitHeight(35);
+		this.setX(x);
+		this.setY(y);
+		this.centerY= y;
+		this.centerX= x;
+		this.sentido = sentido;
+	}
+
+	public double getCenterY() {
+		return centerY;
+	}
+	
+	public double getCenterX() {
+		return centerX;
+	}
+
+	public void setCenterY(double centerY) {
+		this.setY(centerY);
+		this.centerY = centerY;
+	}
+
+	public boolean moverAbajo()
+	{
+		double y = this.getCenterY();
+		y+=sentido;
+		if(y<420){
+			this.setCenterY(y);
+			return true;
+		}
+		else
+			return false;
+	}
+
+}
+
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+public class Jugador extends ImageView {
+	private double sentido;
+	private double centerX;
+	private double centerY;
+	
+	public Jugador(double x, double y, String imageName)
+	{
+		this.setImage(new Image(imageName));
+		this.setFitWidth(85);
+		this.setFitHeight(127);
+		this.setX(x);
+		this.setY(y);
+		this.centerX = x;
+		this.centerY = y;
+		this.sentido = 15;
+	}
+
+	public double getCenterX() {
+		return centerX;
+	}
+	
+	public double getCenterY() {
+		return centerY;
+	}
+
+	public void setCenterX(double centerX) {
+		this.setX(centerX);
+		this.centerX = centerX;
+	}
+
+	public void moverDerecha() {
+		double x = this.getCenterX();
+		x+=sentido;
+		if(x < 590){
+			this.setCenterX(x);
+		}
+	}
+		
+	public void moverIzquierda() {
+		double x = this.getCenterX();
+		x-=sentido;
+		if(x > -20){
+			this.setCenterX(x);			
+		}
+	}
+
+}
+
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.AnchorPane;
+
+public class ViewController {
+	
+	@FXML
+	private AnchorPane Circo;
+	
+	@FXML
+	private Jugador Charlie;
+	
+	@FXML
+	private Coin Coin[];
+	
+	@FXML
+	private Juego juego;	
+	
+	@FXML
+	private Label marcador;
+	
+	@FXML
+	public void initialize() {
+		Charlie = new Jugador(288.0, 320.0, "CircusCharlie.jpg");
+		Circo.getChildren().add(Charlie);
+	}	
+	
+	@FXML
+	private void botonIniciarPresionado() {
+		Coin = new Coin[5];
+		int sentido = 2;
+		for (int i = 0; i < Coin.length; i++) {
+			int x = (int)Math.round((Math.random()*(480)));
+			if(i>25)
+			{
+				sentido = 3;
+			}
+			if(i>60)
+			{
+				sentido = 4;
+			}
+			Coin coin = new Coin(x, 0, "Coin.png", sentido);
+			Coin[i] = coin;
+		}
+		lanzarMonedas();
+	}
+	
+	private void lanzarMonedas() {
+		if(juego == null)
+		{
+			juego = new Juego(Coin, Circo, Charlie, marcador);
+		}
+		juego.start();
+	}
+	
+	
+	@FXML
+	private void keyMove(KeyEvent key) {
+		switch (key.getCode()) {
+		case RIGHT:{
+			Charlie.moverDerecha();
+			break;
+		}
+		case LEFT:
+			Charlie.moverIzquierda();
+			break;
+		default:
+				break;
+		}
+	}
+
+}
+
